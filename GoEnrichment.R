@@ -4,21 +4,21 @@ biocLite("topGO")
 biocLite("Rgraphviz")
 library(topGO)
 
-#make a list of genes with GO IDs from Uniprot
-DEGs <- readMappings(file="Uniprotout.tab", sep="\t", IDsep=";")
-geneNames <- names(DEGs)
+#Read in "gene universe"
+allGenes <- readMappings(file="NIOBT_r1.0.Uniprot.tab", sep="\t", IDsep=";")
+allGeneNames <- names(allGenes)
 
-#Get a list of the upregulated genes
-upReg <- read.csv(file="up.csv", header=FALSE,stringsAsFactors = FALSE)
+#make a list of upregualted genes with GO IDs from Uniprot
+upReg <- readMappings(file="UniprotUp.tab", sep="\t", IDsep=";")
+upReg <- upReg[2:length(upReg)]
+geneNamesUp <- names(upReg)
 
 #Create a list of which genes in the larger list are "of interest"
-geneListup <- factor(as.integer(names(DEGs) %in% upReg$V1))
-names(geneListup) <- geneNames
-geneListdown <- factor(as.integer(!(names(DEGs) %in% upReg$V1)))
-names(geneListdown) <- geneNames
+geneListup <- factor(as.integer(allGeneNames %in% geneNamesUp))
+names(geneListup) <- allGeneNames
 
 #Black box to do that actual go analysis
-sampleGOdataUp <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListup, geneSel = DEGs, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=DEGs)
+sampleGOdataUp <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListup, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=allGenes)
 
 #Summary of the analysis
 sampleGOdataUp
@@ -30,11 +30,21 @@ resultKS.elimUp <- runTest(sampleGOdataUp, algorithm = "elim", statistic = "ks")
 
 allResUp <- GenTable(sampleGOdataUp, classicFisher = resultFisherUp, classicKS = resultKSUp, elimKS = resultKS.elimUp, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 10)
 
-showSigOfNodes(sampleGOdataUp, score(resultKS.elimUp), firstSigNodes = 5, useInfo = "all")
+showSigOfNodes(sampleGOdataUp, score(resultFisherUp), firstSigNodes = 10, useInfo = "all")
 
 
-#Repeat for downregulated genes
-sampleGOdataDown <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListdown, geneSel = DEGs, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=DEGs)
+#########Repeat for downregulated genes
+#make a list of upregualted genes with GO IDs from Uniprot
+downReg <- readMappings(file="UniprotDown.tab", sep="\t", IDsep=";")
+downReg <- downReg[2:length(downReg)]
+geneNamesDown <- names(downReg)
+
+#Create a list of which genes in the larger list are "of interest"
+geneListdown <- factor(as.integer(allGeneNames %in% geneNamesDown))
+names(geneListdown) <- allGeneNames
+
+#Black box to do that actual go analysis
+sampleGOdataDown <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListdown, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=allGenes)
 
 #Summary of the analysis
 sampleGOdataDown
@@ -44,6 +54,6 @@ resultFisherDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic =
 resultKSDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic = "ks")
 resultKS.elimDown <- runTest(sampleGOdataDown, algorithm = "elim", statistic = "ks")
 
-allResDown <- GenTable(sampleGOdataDown, classicFisher = resultFisherDown, classicKS = resultKSDown, elimKS = resultKS.elimDown, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 10)
+allResDown <- GenTable(sampleGOdataDown, classicFisher = resultFisherDown, classicKS = resultKSDown, elimKS = resultKS.elimDown, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 35)
 
-showSigOfNodes(sampleGOdataDown, score(resultKS.elimDown), firstSigNodes = 5, useInfo = "all")
+showSigOfNodes(sampleGOdataDown, score(resultFisherDown), firstSigNodes = 10, useInfo = "all")
