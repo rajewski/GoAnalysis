@@ -12,3 +12,6 @@ This is the biggest kludge of the workflow. I can't seem to find a simple way to
 
 ## Running the GO Enrichment Script
 I will be the first to admit that doing this analysis on the 0DPA vs 3DPA dataset is statistically.....inadequate? That being said I am following the instructions in the vignette and really don't understand what all it is doing. The GoEnrichment.R script is fairly well annotated, so I'll be sparse with my comments here.
+
+## Visualization
+Although the GoEnrichment.R script will make a plot, it is sort of garbage-y because you can't adjust any of the graphing parameters. I modified the R script so that I can output a list of the GO terms from an analysis along with the p-values. This list can then be copied into http://revigo.irb.hr/ with the similarity measure set to tiny (0.4) to produce a graph. On the results page there is a link to download R code to make this graph with ggplot. This code will have the GO terms and p-values you input to the website hard-coded and that code is saved in this repo as REVIGO.R. I modifed this code slightly to change font sizes and to label not by the dispensibility measure, but rather by the log_10_pvalue column.
