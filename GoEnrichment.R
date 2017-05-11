@@ -53,7 +53,8 @@ sampleGOdataDown
 resultFisherDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic = "fisher")
 resultKSDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic = "ks")
 resultKS.elimDown <- runTest(sampleGOdataDown, algorithm = "elim", statistic = "ks")
+resultFisherWeightDown <- runTest(sampleGOdataDown, algorithm="weight01", statistic="fisher")
 
 allResDown <- GenTable(sampleGOdataDown, classicFisher = resultFisherDown, classicKS = resultKSDown, elimKS = resultKS.elimDown, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 35)
 
-showSigOfNodes(sampleGOdataDown, score(resultFisherDown), firstSigNodes = 10, useInfo = "all")
+showSigOfNodes(sampleGOdataDown, score(resultFisherWeightDown), firstSigNodes = 6, useInfo = "all")
