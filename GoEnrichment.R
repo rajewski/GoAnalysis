@@ -1,6 +1,6 @@
 #Install libraries
-source("https://bioconductor.org/biocLite.R")
-biocLite("Rgraphviz")
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("Rgraphviz")
 library(topGO)
 
 #Read in "gene universe"
