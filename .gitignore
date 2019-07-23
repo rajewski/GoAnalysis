@@ -1,4 +1,4 @@
 *.csv
-.Rproj.user
+*.Rproj
 *.dmnd
 uniprot_sprot.fasta
