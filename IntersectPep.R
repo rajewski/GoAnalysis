@@ -8,8 +8,8 @@ wanted <- read.csv("~/bigdata/Nobtusifolia/RNA-seq/Results_Ballgown/Nobt_Prev3DP
 wanted$t_name <- substr(wanted$t_name,1,nchar(as.character(wanted$t_name))-3)
 
 #split into up and down regulated
-Up <- wanted[wanted$fc>=1,]
-Down <- wanted[wanted$fc<1,]
+Up <- wanted[wanted$fc>=1 & wanted$qval<=0.05,]
+Down <- wanted[wanted$fc<1 & wanted$qval<=0.05,]
 
 #intersect the two list
 UpMatch <- Pros[match(Up$t_name,names(Pros))]

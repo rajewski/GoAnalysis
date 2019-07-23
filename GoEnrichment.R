@@ -1,15 +1,14 @@
 #Install libraries
 source("https://bioconductor.org/biocLite.R")
-biocLite("topGO")
 biocLite("Rgraphviz")
 library(topGO)
 
 #Read in "gene universe"
-allGenes <- readMappings(file="NIOBT_r1.0.Uniprot.tab", sep="\t", IDsep=";")
+allGenes <- readMappings(file="All.tab", sep="\t", IDsep=";")
 allGeneNames <- names(allGenes)
 
 #make a list of upregualted genes with GO IDs from Uniprot
-upReg <- readMappings(file="UniprotUp.tab", sep="\t", IDsep=";")
+upReg <- readMappings(file="Up.tab", sep="\t", IDsep=";")
 upReg <- upReg[2:length(upReg)]
 geneNamesUp <- names(upReg)
 
@@ -30,12 +29,12 @@ resultKS.elimUp <- runTest(sampleGOdataUp, algorithm = "elim", statistic = "ks")
 
 allResUp <- GenTable(sampleGOdataUp, classicFisher = resultFisherUp, classicKS = resultKSUp, elimKS = resultKS.elimUp, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 10)
 
-showSigOfNodes(sampleGOdataUp, score(resultFisherUp), firstSigNodes = 10, useInfo = "all")
+showSigOfNodes(sampleGOdataUp, score(resultFisherUp), firstSigNodes = 7, useInfo = "all")
 
 
 #########Repeat for downregulated genes
 #make a list of upregualted genes with GO IDs from Uniprot
-downReg <- readMappings(file="UniprotDown.tab", sep="\t", IDsep=";")
+downReg <- readMappings(file="Down.tab", sep="\t", IDsep=";")
 downReg <- downReg[2:length(downReg)]
 geneNamesDown <- names(downReg)
 
@@ -57,4 +56,4 @@ resultFisherWeightDown <- runTest(sampleGOdataDown, algorithm="weight01", statis
 
 allResDown <- GenTable(sampleGOdataDown, classicFisher = resultFisherDown, classicKS = resultKSDown, elimKS = resultKS.elimDown, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 35)
 
-showSigOfNodes(sampleGOdataDown, score(resultFisherWeightDown), firstSigNodes = 6, useInfo = "all")
+showSigOfNodes(sampleGOdataDown, score(resultFisherWeightDown), firstSigNodes = 3, useInfo = "all")
