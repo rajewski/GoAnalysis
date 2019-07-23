@@ -1,4 +1,7 @@
 *.csv
 *.Rproj
+.Rproj.user
+.Rhistory
+Delete.pdf
 *.dmnd
 uniprot_sprot.fasta
