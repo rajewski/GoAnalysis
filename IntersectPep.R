@@ -1,6 +1,15 @@
 #to intersect a list of trnscripts of interest from a peptide list
-Pros <- readAAStringSet("NIOBT_r1.0.aa")
-wanted <- read.table("wanted.txt")
-wanted2 <- substr(wanted$V1,1,nchar(as.character(wanted$V1))-3)
-matches2 <- Pros[match(wanted2[1:length(wanted2)],names(Pros))]
-writeXStringSet(matches2, "DEG_pep.fasta", format = "fasta")
+library(Biostrings)
+#Read in a list of all protein sequences
+Pros <- readAAStringSet("~/bigdata/Nobtusifolia/Genome_Files/NIOBT_r1.0.proteins.fa")
+#Read in a list of the query protein names
+wanted <- read.csv("~/bigdata/Nobtusifolia/RNA-seq/Results_Ballgown/Nobt_Prev3DPA_DEGs.csv")
+
+#strip off transcript suffix
+wanted$t_name <- substr(wanted$t_name,1,nchar(as.character(wanted$t_name))-3)
+
+#intersect the two list
+matches <- Pros[match(wanted$t_name,names(Pros))]
+
+#write it to a fasta file
+writeXStringSet(matches, "DEG_pep.fasta", format = "fasta")
