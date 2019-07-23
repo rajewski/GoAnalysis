@@ -30,13 +30,43 @@ if [ ! -e uniprot_sprot.fasta.pin ]; then
 fi
 
 #BLAST Search
+if [ ! -e DEG_pep.outfmt6 ]; then
+  echo $(date): "Searching for Uniprot hits with BLASTp"
+  blastp \
+    -query ~/bigdata/Nobtusifolia/RNA-seq/Results_Ballgown/GoAnalysis/DEG_pep.fasta  \
+    -db uniprot_sprot.fasta \
+    -num_threads $SLURM_NTASKS \
+    -max_target_seqs 1 \
+    -outfmt 6 \
+    > DEG_pep.outfmt6
+  echo $(date): Done.
+else
+  echo $(date): BLAST search already completed.
+fi
+  
+module load diamond/0.9.24
+if [ ! -e uniprot.dmnd ]; then
+  echo $(date): Making Diamond database.
+  diamond makedb \
+    --in uniprot_sprot.fasta \
+    --db uniprot
+  echo $(date): Done.
+else
+  echo $(date): Diamond database already present
+fi
 
-blastp \
-  -query ~/bigdata/Nobtusifolia/RNA-seq/Results_Ballgown/GoAnalysis/DEG_pep.fasta  \
-  -db uniprot_sprot.fasta \
-  -num_threads $SLURM_NTASKS \
-  -max_target_seqs 1 \
-  -outfmt 6 \
-  > DEG_pep.outfmt6
+if [ ! -e DEG_pep.diamond.outmt6 ]; then
+  echo $(date): Searching UniProt with DIAMOND
+  diamond blastp \
+    --db uniprot.dmnd \
+    --sensitive \
+    --outfmt 6 \
+    --max-target-seqs 1 \
+    --query ~/bigdata/Nobtusifolia/RNA-seq/Results_Ballgown/GoAnalysis/DEG_pep.fasta \
+    -o DEG_pep.diamond.outmt6
+  echo $(date): Done.
+else
+  echo $(date): Diamond search already completed.
+fi
 
 scontrol show job $SLURM_JOB_ID
