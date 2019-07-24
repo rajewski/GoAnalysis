@@ -1,0 +1,12 @@
+Tue Jul 23 17:38:14 PDT 2019: Diamond database already present
+Tue Jul 23 17:38:14 PDT 2019: Searching Up regulated genes on UniProt with DIAMOND
+diamond v0.9.24.125 | by Benjamin Buchfink <buchfink@gmail.com>
+Licensed under the GNU GPL <https://www.gnu.org/licenses/gpl.txt>
+Check http://github.com/bbuchfink/diamond for updates.
+
+#CPU threads: 64
+Scoring parameters: (Matrix=BLOSUM62 Lambda=0.267 K=0.041 Penalties=11/1)
+Temporary directory: 
+Opening the database... No such file or directory
+ [0.000508s]
+Error: Error opening file uniprot.dmndo
