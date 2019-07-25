@@ -30,6 +30,12 @@ library(topGO)
 allGenes <- readMappings(file="~/bigdata/Slycopersicum/data/ITAG3.2_protein_go.tsv", sep="\t", IDsep=";")
 names(allGenes) <- gsub('.{2}$', '', names(allGenes)) #remove transcript ID
 
+#Write all to a TSV files
+SlycAllOut <- data.frame(GOTerm=I(unlist(lapply(allGenes, paste, collapse="; "))))
+SlycAllOut$gene_id <- names(allGenes)
+SlycAllOut <- aggregate(SlycAllOut$GOTerm~SlycAllOut$gene_id, FUN=paste, collapse="; ")
+write.table(file="SlycAll.tab", SlycAllOut, sep="\t", quote=F, col.names = F)
+
 #Write subset to a tsv file
 SlycUpOut <- data.frame(GOTerm=I(unlist(lapply(allGenes[SlycUp[,1]],paste,collapse="; "))))
 row.names(SlycUpOut) <- SlycUp[,1]
