@@ -4,56 +4,120 @@
 library(topGO)
 
 #Read in "gene universe"
-allGenes <- readMappings(file="All.tab", sep="\t", IDsep=";")
-allGeneNames <- names(allGenes)
+NobtAll <- readMappings(file="NobtAll.tab", sep="\t", IDsep=";")
+NobtAllNames <- names(NobtAll)
 
 #make a list of upregualted genes with GO IDs from Uniprot
-upReg <- readMappings(file="Up.tab", sep="\t", IDsep=";")
-upReg <- upReg[2:length(upReg)]
-geneNamesUp <- names(upReg)
+NobtUp <- readMappings(file="NobtUp.tab", sep="\t", IDsep=";")
+NobtUp <- NobtUp[2:length(NobtUp)]
+NobtUpNames <- names(NobtUp)
 
 #Create a list of which genes in the larger list are "of interest"
-geneListup <- factor(as.integer(allGeneNames %in% geneNamesUp))
-names(geneListup) <- allGeneNames
+NobtUpList <- factor(as.integer(NobtAllNames %in% NobtUpNames))
+names(NobtUpList) <- NobtAllNames
 
 #Black box to do that actual go analysis
-sampleGOdataUp <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListup, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=allGenes)
+NobtUpGOData <- new("topGOdata", description = "0 vs 6 DPA", ontology = "BP", allGenes = NobtUpList, nodeSize = 5, annot = annFUN.gene2GO, gene2GO=NobtAll)
+#NobtUpGOData <- new("topGOdata", description = "0 vs 6 DPA", ontology = "MF", allGenes = NobtUpList, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=NobtAll)
+#NobtUpGOData <- new("topGOdata", description = "0 vs 6 DPA", ontology = "CC", allGenes = NobtUpList, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=NobtAll)
 
 #Summary of the analysis
-sampleGOdataUp
+NobtUpGOData
 
-#Run several enrichment tests
-resultFisherUp <- runTest(sampleGOdataUp, algorithm = "classic", statistic = "fisher")
-resultKSUp <- runTest(sampleGOdataUp, algorithm = "classic", statistic = "ks")
-resultKS.elimUp <- runTest(sampleGOdataUp, algorithm = "elim", statistic = "ks")
+#Run enrichment test
+NobtUpFisherWeightResults <- runTest(NobtUpGOData, algorithm="weight01", statistic = "fisher")
 
-allResUp <- GenTable(sampleGOdataUp, classicFisher = resultFisherUp, classicKS = resultKSUp, elimKS = resultKS.elimUp, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 10)
+#Summary of test
+NobtUpallRes <- GenTable(NobtUpGOData, Fisher = NobtUpFisherWeightResults, orderBy = "Fisher", ranksOf = "Fisher", topNodes = 20)
+showSigOfNodes(NobtUpGOData, score(NobtUpFisherWeightResults), firstSigNodes = 10, useInfo = "all")
+NobtUpallRes
 
-showSigOfNodes(sampleGOdataUp, score(resultFisherUp), firstSigNodes = 7, useInfo = "all")
+#Make graph for plotting GO Terms
+# from https://www.biostars.org/p/350710/
+NobtUpGraph <- GenTable(NobtUpGOData,Fisher=NobtUpFisherWeightResults, orderBy=Fisher, topNodes=20)
+NobtUpGraph <- NobtUpGraph[as.numeric(NobtUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+NobtUpGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", NobtUpGraph$Term) #clean elipses
+NobtUpGraph$Term <- gsub("\\.\\.\\.$", "", NobtUpGraph$Term)
+NobtUpGraph$Term <- paste(NobtUpGraph$GO.ID, NobtUpGraph$Term, sep=", ")
+NobtUpGraph$Term <- factor(NobtUpGraph$Term, levels=rev(NobtUpGraph$Term))
+NobtUpGraph$Fisher <- as.numeric(NobtUpGraph$Fisher)
 
+require(ggplot2)
+ggplot(NobtUpGraph, aes(x=Term, y=-log10(Fisher))) +
+  stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+  xlab("Biological Process") +
+  ylab("Log Fold Enrichment") +
+  ggtitle("Tobacco Genes Down at 6DPA") +
+  scale_y_continuous(breaks = round(seq(0, max(-log10(NobtUpGraph$Fisher)), by = 2), 1)) +
+  theme_bw(base_size=24) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position='none',
+    legend.background=element_rect(),
+    plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
+    axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
+    axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
+    axis.title=element_text(size=24, face="bold"),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    title=element_text(size=18)) +
+  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  coord_flip()
 
-#########Repeat for downregulated genes
+# Nobt Down Regulated Genes -----------------------------------------------
 #make a list of upregualted genes with GO IDs from Uniprot
-downReg <- readMappings(file="Down.tab", sep="\t", IDsep=";")
-downReg <- downReg[2:length(downReg)]
-geneNamesDown <- names(downReg)
+NobtDown <- readMappings(file="NobtDown.tab", sep="\t", IDsep=";")
+NobtDown <- NobtDown[2:length(NobtDown)]
+NobtDownNames <- names(NobtDown)
 
 #Create a list of which genes in the larger list are "of interest"
-geneListdown <- factor(as.integer(allGeneNames %in% geneNamesDown))
-names(geneListdown) <- allGeneNames
+NobtDownList <- factor(as.integer(NobtAllNames %in% NobtDownNames))
+names(NobtDownList) <- NobtAllNames
 
 #Black box to do that actual go analysis
-sampleGOdataDown <- new("topGOdata", description = "0 vs 3 DPA", ontology = "BP", allGenes = geneListdown, nodeSize = 10, annot = annFUN.gene2GO, gene2GO=allGenes)
+NobtDownGOData <- new("topGOdata", description = "0 vs 6 DPA", ontology = "BP", allGenes = NobtDownList, nodeSize = 5, annot = annFUN.gene2GO, gene2GO=NobtAll)
 
 #Summary of the analysis
-sampleGOdataDown
+NobtDownGOData
 
-#Run several enrichment tests
-resultFisherDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic = "fisher")
-resultKSDown <- runTest(sampleGOdataDown, algorithm = "classic", statistic = "ks")
-resultKS.elimDown <- runTest(sampleGOdataDown, algorithm = "elim", statistic = "ks")
-resultFisherWeightDown <- runTest(sampleGOdataDown, algorithm="weight01", statistic="fisher")
+#Run enrichment test
+NobtDownFisherWeight <- runTest(NobtDownGOData, algorithm="weight01", statistic="fisher")
 
-allResDown <- GenTable(sampleGOdataDown, classicFisher = resultFisherDown, classicKS = resultKSDown, elimKS = resultKS.elimDown, orderBy = "elimKS", ranksOf = "classicFisher", topNodes = 35)
+#Summary of Test
+NobtDownallRes <- GenTable(NobtDownGOData, Fisher=NobtDownFisherWeight, orderBy = "Fisher", ranksOf = "Fisher", topNodes = 20)
+showSigOfNodes(NobtDownGOData, score(NobtDownFisherWeight), firstSigNodes = 10, useInfo = "all")
 
-showSigOfNodes(sampleGOdataDown, score(resultFisherWeightDown), firstSigNodes = 3, useInfo = "all")
+#Make graph for plotting GO Terms
+# from https://www.biostars.org/p/350710/
+NobtDownGraph <- GenTable(NobtDownGOData,Fisher=NobtDownFisherWeight, orderBy=Fisher, topNodes=20)
+NobtDownGraph <- NobtDownGraph[as.numeric(NobtDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+NobtDownGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", NobtDownGraph$Term) #clean elipses
+NobtDownGraph$Term <- gsub("\\.\\.\\.$", "", NobtDownGraph$Term)
+NobtDownGraph$Term <- paste(NobtDownGraph$GO.ID, NobtDownGraph$Term, sep=", ")
+NobtDownGraph$Term <- factor(NobtDownGraph$Term, levels=rev(NobtDownGraph$Term))
+NobtDownGraph$Fisher <- as.numeric(NobtDownGraph$Fisher)
+
+require(ggplot2)
+ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher))) +
+  stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+  xlab("Biological Process") +
+  ylab("Log Fold Enrichment") +
+  ggtitle("Tobacco Genes Up at 6DPA") +
+  scale_y_continuous(breaks = round(seq(0, max(-log10(NobtDownGraph$Fisher)), by = 2), 1)) +
+  theme_bw(base_size=24) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position='none',
+    legend.background=element_rect(),
+    plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
+    axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
+    axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
+    axis.title=element_text(size=24, face="bold"),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    title=element_text(size=18)) +
+  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  coord_flip()
+
