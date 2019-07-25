@@ -2,6 +2,7 @@
 #source("https://bioconductor.org/biocLite.R")
 #biocLite("Rgraphviz")
 library(topGO)
+#Honestly Alex, you should make this a loop that generates all the graphs and just reads in different data
 
 #Read in "gene universe"
 NobtAll <- readMappings(file="NobtAll.tab", sep="\t", IDsep=";")
@@ -69,8 +70,6 @@ NobtUpPlot <- ggplot(NobtUpGraph, aes(x=Term, y=-log10(Fisher))) +
 
 
 # Nobt Down ---------------------------------------------------------------
-
-
 #make a list of upregualted genes with GO IDs from Uniprot
 NobtDown <- readMappings(file="NobtDown.tab", sep="\t", IDsep=";")
 NobtDown <- NobtDown[2:length(NobtDown)]
@@ -129,7 +128,6 @@ NobtDownPlot <- ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher))) +
 
 
 
-
 #Read in "gene universe"
 SlycAll <- readMappings(file="SlycAll.tab", sep="\t", IDsep=";")
 SlycAllNames <- names(SlycAll)
@@ -175,7 +173,7 @@ SlycUpPlot <- ggplot(SlycUpGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tobacco Genes Down at 15DPA") +
+  ggtitle("Tomato Genes Down at 15DPA") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -238,7 +236,7 @@ SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tobacco Genes Up at 15DPA") +
+  ggtitle("Tomato Genes Up at 15DPA") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -255,4 +253,24 @@ SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher))) +
     title=element_text(size=18)) +
   guides(colour=guide_legend(override.aes=list(size=2.5))) +
   coord_flip()
+
+
+#Save Outputs
+pdf(file="NobtUp.pdf", height=10, width=17)
+  NobtUpPlot
+dev.off()
+
+pdf(file="NobtDown.pdf", height=10, width=17)
+  NobtDownPlot
+dev.off()
+  
+pdf(file="SlycUp.pdf", height=10, width=17)
+  SlycUpPlot
+dev.off()
+
+pdf(file="SlycDown.pdf", height=10, width=17)
+  SlycDownPlot
+dev.off()
+
+
 
