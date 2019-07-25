@@ -34,7 +34,7 @@ names(allGenes) <- gsub('.{2}$', '', names(allGenes)) #remove transcript ID
 SlycAllOut <- data.frame(GOTerm=I(unlist(lapply(allGenes, paste, collapse="; "))))
 SlycAllOut$gene_id <- names(allGenes)
 SlycAllOut <- aggregate(SlycAllOut$GOTerm~SlycAllOut$gene_id, FUN=paste, collapse="; ")
-write.table(file="SlycAll.tab", SlycAllOut, sep="\t", quote=F, col.names = F)
+write.table(file="SlycAll.tab", SlycAllOut, sep="\t", quote=F, col.names = F, row.names = F)
 
 #Write subset to a tsv file
 SlycUpOut <- data.frame(GOTerm=I(unlist(lapply(allGenes[SlycUp[,1]],paste,collapse="; "))))
