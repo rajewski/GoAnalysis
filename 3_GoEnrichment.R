@@ -49,7 +49,7 @@ NobtUpPlot <- ggplot(NobtUpGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tobacco Genes Down at 6DPA") +
+  ggtitle("Tobacco Genes Down at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(NobtUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -107,7 +107,7 @@ NobtDownPlot <- ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tobacco Genes Up at 6DPA") +
+  ggtitle("Tobacco Genes Up at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(NobtDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -127,7 +127,7 @@ NobtDownPlot <- ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher))) +
 
 
 
-
+# General Slyc ------------------------------------------------------------
 #Read in "gene universe"
 SlycAll <- readMappings(file="SlycAll.tab", sep="\t", IDsep=";")
 SlycAllNames <- names(SlycAll)
@@ -173,7 +173,7 @@ SlycUpPlot <- ggplot(SlycUpGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tomato Genes Down at 15DPA") +
+  ggtitle("Tomato Genes Down at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -236,7 +236,7 @@ SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher))) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tomato Genes Up at 15DPA") +
+  ggtitle("Tomato Genes Up at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
@@ -255,22 +255,128 @@ SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher))) +
   coord_flip()
 
 
+# Conserved Genes ---------------------------------------------------------
+#repeat the enrichment with a set of conserved genes (conservedUp.csv) etc
+#I'm going to analyze them as if they're tomato genes to have a better background for the "gene universe"
+ConservedUpMapping <- read.csv("~/bigdata/Slycopersicum/slyc-WT/ConservedUp.csv")
+ConservedUp <- SlycAll[names(SlycAll) %in% as.character(ConservedUpMapping$Slyc.Hit)]
+ConservedUpNames <- names(ConservedUp)
+
+#Create a list of which genes in the larger list are "of interest"
+ConservedUpList <- factor(as.integer(SlycAllNames %in% ConservedUpNames))
+names(ConservedUpList) <- SlycAllNames
+
+#do the go analysis with smaller nodes 2 vs 5
+ConservedUpGOData <- new("topGOdata", description = "Conserved Down Stage 3", ontology = "BP", allGenes = ConservedUpList, nodeSize = 2, annot = annFUN.gene2GO, gene2GO=SlycAll)
+ConservedUpFisherWeightResults <- runTest(ConservedUpGOData, algorithm="weight01", statistic = "fisher")
+
+#Make graph for plotting GO Terms
+# from https://www.biostars.org/p/350710/
+ConservedUpGraph <- GenTable(ConservedUpGOData,Fisher=ConservedUpFisherWeightResults, orderBy=Fisher, topNodes=20)
+ConservedUpGraph <- ConservedUpGraph[as.numeric(ConservedUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+ConservedUpGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", ConservedUpGraph$Term) #clean elipses
+ConservedUpGraph$Term <- gsub("\\.\\.\\.$", "", ConservedUpGraph$Term)
+ConservedUpGraph$Term <- paste(ConservedUpGraph$GO.ID, ConservedUpGraph$Term, sep=", ")
+ConservedUpGraph$Term <- factor(ConservedUpGraph$Term, levels=rev(ConservedUpGraph$Term))
+ConservedUpGraph$Fisher <- as.numeric(ConservedUpGraph$Fisher)
+
+require(ggplot2)
+ConservedUpPlot <- ggplot(ConservedUpGraph, aes(x=Term, y=-log10(Fisher))) +
+  stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+  xlab("Biological Process") +
+  ylab("Log Fold Enrichment") +
+  ggtitle("Conserved Genes Down at Stage 3") +
+  scale_y_continuous(breaks = round(seq(0, max(-log10(ConservedUpGraph$Fisher)), by = 2), 1)) +
+  theme_bw(base_size=24) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position='none',
+    legend.background=element_rect(),
+    plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
+    axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
+    axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
+    axis.title=element_text(size=24, face="bold"),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    title=element_text(size=18)) +
+  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  coord_flip()
+
+
+# Conserved Down ----------------------------------------------------------
+#repeat the enrichment with a set of conserved genes (conservedUp.csv) etc
+#I'm going to analyze them as if they're tomato genes to have a better background for the "gene universe"
+ConservedDownMapping <- read.csv("~/bigdata/Slycopersicum/slyc-WT/ConservedDown.csv")
+ConservedDown <- SlycAll[names(SlycAll) %in% as.character(ConservedDownMapping$Slyc.Hit)]
+ConservedDownNames <- names(ConservedDown)
+
+#Create a list of which genes in the larger list are "of interest"
+ConservedDownList <- factor(as.integer(SlycAllNames %in% ConservedDownNames))
+names(ConservedDownList) <- SlycAllNames
+
+#do the go analysis with smaller nodes 2 vs 5
+ConservedDownGOData <- new("topGOdata", description = "Conserved Up Stage 3", ontology = "BP", allGenes = ConservedDownList, nodeSize = 2, annot = annFUN.gene2GO, gene2GO=SlycAll)
+ConservedDownFisherWeightResults <- runTest(ConservedDownGOData, algorithm="weight01", statistic = "fisher")
+
+#Make graph for plotting GO Terms
+# from https://www.biostars.org/p/350710/
+ConservedDownGraph <- GenTable(ConservedDownGOData,Fisher=ConservedDownFisherWeightResults, orderBy=Fisher, topNodes=20)
+ConservedDownGraph <- ConservedDownGraph[as.numeric(ConservedDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+ConservedDownGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", ConservedDownGraph$Term) #clean elipses
+ConservedDownGraph$Term <- gsub("\\.\\.\\.$", "", ConservedDownGraph$Term)
+ConservedDownGraph$Term <- paste(ConservedDownGraph$GO.ID, ConservedDownGraph$Term, sep=", ")
+ConservedDownGraph$Term <- factor(ConservedDownGraph$Term, levels=rev(ConservedDownGraph$Term))
+ConservedDownGraph$Fisher <- as.numeric(ConservedDownGraph$Fisher)
+
+require(ggplot2)
+ConservedDownPlot <- ggplot(ConservedDownGraph, aes(x=Term, y=-log10(Fisher))) +
+  stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+  xlab("Biological Process") +
+  ylab("Log Fold Enrichment") +
+  ggtitle("Conserved Genes Up at Stage 3") +
+  scale_y_continuous(breaks = round(seq(0, max(-log10(ConservedDownGraph$Fisher)), by = 2), 1)) +
+  theme_bw(base_size=24) +
+  theme(
+    panel.grid = element_blank(),
+    legend.position='none',
+    legend.background=element_rect(),
+    plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
+    axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
+    axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
+    axis.title=element_text(size=24, face="bold"),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    title=element_text(size=18)) +
+  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  coord_flip()
+
+
+# Save Plots --------------------------------------------------------------
 #Save Outputs
 pdf(file="NobtUp.pdf", height=10, width=17)
-  NobtUpPlot
+  NobtDownPlot
 dev.off()
 
 pdf(file="NobtDown.pdf", height=10, width=17)
-  NobtDownPlot
-dev.off()
-  
-pdf(file="SlycUp.pdf", height=10, width=17)
-  SlycUpPlot
+  NobtUpPlot
 dev.off()
 
-pdf(file="SlycDown.pdf", height=10, width=17)
+pdf(file="SlycUp.pdf", height=10, width=17)
   SlycDownPlot
 dev.off()
 
+pdf(file="SlycDown.pdf", height=10, width=17)
+  SlycUpPlot
+dev.off()
+
+pdf(file="ConservedUp.pdf", height=10, width=17)
+  ConservedDownPlot
+dev.off()
+
+pdf(file="ConservedDown.pdf", height=10, width=17)
+  ConservedUpPlot
+dev.off()
 
 
