@@ -10,17 +10,21 @@ NobtWanted$t_name <- substr(NobtWanted$t_name,1,nchar(as.character(NobtWanted$t_
 NobtUp <- read.csv("~/bigdata/Slycopersicum/slyc-WT/Nobt_Prev16_DESeq_Up.csv")
 NobtDown <- read.csv("~/bigdata/Slycopersicum/slyc-WT/Nobt_Prev6_DESeq_Down.csv")
 
-#intersect the two list
-NobtUpMatch <- NobtPro[match(NobtUp[,1],names(NobtPro))]
-NobtDownMatch <- NobtPro[match(NobtDown[,1],names(NobtPro))]
-#write it to a fasta file
-writeXStringSet(NobtUpMatch, "NobtUp.fasta", format = "fasta")
-writeXStringSet(NobtDownMatch, "NobtDown.fasta", format = "fasta")
+#intersect the two list and write it to a fasta file
+writeXStringSet(NobtPro[match(NobtUp[,1],names(NobtPro))], "NobtUp.fasta", format = "fasta")
+writeXStringSet(NobtPro[match(NobtDown[,1],names(NobtPro))], "NobtDown.fasta", format = "fasta")
 
 #This section will deal with tomato, which is slightly different. We already have a list
 #of GO terms for each protein, so we just need to reformat and intersect the two lists
 SlycUp <- read.csv("~/bigdata/Slycopersicum/slyc-WT/Slyc_1v15_DESeq_Up.csv")
 SlycDown <- read.csv("~/bigdata/Slycopersicum/slyc-WT/Slyc_1v15_DESeq_Down.csv")
+
+#ope, I also have to output the protein sequences for another analysis so I just do it here
+SlycPro <- readAAStringSet("~/bigdata/Slycopersicum/data/ITAG3.2_proteins.fasta")
+names(SlycPro) <- strtrim(names(SlycPro),16)
+writeXStringSet(SlycPro[match(SlycUp[,1],names(SlycPro))], "SlycUp.fasta", format = "fasta")
+writeXStringSet(SlycPro[match(SlycDown[,1],names(SlycPro))], "SlycDown.fasta", format = "fasta")
+
 
 #get Go terms for each protein
 library(topGO)
