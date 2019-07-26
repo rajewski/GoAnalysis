@@ -2,6 +2,8 @@
 #source("https://bioconductor.org/biocLite.R")
 #biocLite("Rgraphviz")
 library(topGO)
+pal <- c("#74A9CF", "#3690C0", "#0570B0", "#045A8D", "#023858")
+
 #Honestly Alex, you should make this a loop that generates all the graphs and just reads in different data
 
 #Read in "gene universe"
@@ -36,8 +38,8 @@ NobtUpallRes
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-NobtUpGraph <- GenTable(NobtUpGOData,Fisher=NobtUpFisherWeightResults, orderBy=Fisher, topNodes=20)
-NobtUpGraph <- NobtUpGraph[as.numeric(NobtUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+NobtUpGraph <- GenTable(NobtUpGOData,Fisher=NobtUpFisherWeightResults, orderBy=Fisher, topNodes=10)
+NobtUpGraph <- NobtUpGraph[as.numeric(NobtUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 NobtUpGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", NobtUpGraph$Term) #clean elipses
 NobtUpGraph$Term <- gsub("\\.\\.\\.$", "", NobtUpGraph$Term)
 NobtUpGraph$Term <- paste(NobtUpGraph$GO.ID, NobtUpGraph$Term, sep=", ")
@@ -45,26 +47,28 @@ NobtUpGraph$Term <- factor(NobtUpGraph$Term, levels=rev(NobtUpGraph$Term))
 NobtUpGraph$Fisher <- as.numeric(NobtUpGraph$Fisher)
 
 require(ggplot2)
-NobtUpPlot <- ggplot(NobtUpGraph, aes(x=Term, y=-log10(Fisher))) +
+NobtUpPlot <- ggplot(NobtUpGraph, aes(x=Term, y=-log10(Fisher), fill=NobtUpGraph$Significant)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tobacco Genes Down at Stage 3") +
+  scale_fill_gradientn(colours = pal) +
+  ggtitle("Tobacco Genes Up at Stage 1") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(NobtUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
 
 
@@ -94,8 +98,8 @@ showSigOfNodes(NobtDownGOData, score(NobtDownFisherWeight), firstSigNodes = 10, 
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-NobtDownGraph <- GenTable(NobtDownGOData,Fisher=NobtDownFisherWeight, orderBy=Fisher, topNodes=20)
-NobtDownGraph <- NobtDownGraph[as.numeric(NobtDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+NobtDownGraph <- GenTable(NobtDownGOData,Fisher=NobtDownFisherWeight, orderBy=Fisher, topNodes=10)
+NobtDownGraph <- NobtDownGraph[as.numeric(NobtDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 NobtDownGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", NobtDownGraph$Term) #clean elipses
 NobtDownGraph$Term <- gsub("\\.\\.\\.$", "", NobtDownGraph$Term)
 NobtDownGraph$Term <- paste(NobtDownGraph$GO.ID, NobtDownGraph$Term, sep=", ")
@@ -103,26 +107,28 @@ NobtDownGraph$Term <- factor(NobtDownGraph$Term, levels=rev(NobtDownGraph$Term))
 NobtDownGraph$Fisher <- as.numeric(NobtDownGraph$Fisher)
 
 require(ggplot2)
-NobtDownPlot <- ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher))) +
+NobtDownPlot <- ggplot(NobtDownGraph, aes(x=Term, y=-log10(Fisher), fill=NobtDownGraph$Significant)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
+  scale_fill_gradientn(colours = pal) +
   ggtitle("Tobacco Genes Up at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(NobtDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
 
 
@@ -160,8 +166,8 @@ SlycUpallRes
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-SlycUpGraph <- GenTable(SlycUpGOData,Fisher=SlycUpFisherWeightResults, orderBy=Fisher, topNodes=20)
-SlycUpGraph <- SlycUpGraph[as.numeric(SlycUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+SlycUpGraph <- GenTable(SlycUpGOData,Fisher=SlycUpFisherWeightResults, orderBy=Fisher, topNodes=10)
+SlycUpGraph <- SlycUpGraph[as.numeric(SlycUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 SlycUpGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", SlycUpGraph$Term) #clean elipses
 SlycUpGraph$Term <- gsub("\\.\\.\\.$", "", SlycUpGraph$Term)
 SlycUpGraph$Term <- paste(SlycUpGraph$GO.ID, SlycUpGraph$Term, sep=", ")
@@ -169,30 +175,29 @@ SlycUpGraph$Term <- factor(SlycUpGraph$Term, levels=rev(SlycUpGraph$Term))
 SlycUpGraph$Fisher <- as.numeric(SlycUpGraph$Fisher)
 
 require(ggplot2)
-SlycUpPlot <- ggplot(SlycUpGraph, aes(x=Term, y=-log10(Fisher))) +
+SlycUpPlot <- ggplot(SlycUpGraph, aes(x=Term, y=-log10(Fisher), fill=SlycUpGraph$Significant)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Tomato Genes Down at Stage 3") +
+  ggtitle("Tomato Genes Up at Stage 1") +
+  scale_fill_gradientn(colours = pal) +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
-
-
-
 
 
 # Slyc Down ---------------------------------------------------------------
@@ -223,8 +228,8 @@ SlycDownallRes
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-SlycDownGraph <- GenTable(SlycDownGOData,Fisher=SlycDownFisherWeightResults, orderBy=Fisher, topNodes=20)
-SlycDownGraph <- SlycDownGraph[as.numeric(SlycDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+SlycDownGraph <- GenTable(SlycDownGOData,Fisher=SlycDownFisherWeightResults, orderBy=Fisher, topNodes=10)
+SlycDownGraph <- SlycDownGraph[as.numeric(SlycDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 SlycDownGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", SlycDownGraph$Term) #clean elipses
 SlycDownGraph$Term <- gsub("\\.\\.\\.$", "", SlycDownGraph$Term)
 SlycDownGraph$Term <- paste(SlycDownGraph$GO.ID, SlycDownGraph$Term, sep=", ")
@@ -232,26 +237,28 @@ SlycDownGraph$Term <- factor(SlycDownGraph$Term, levels=rev(SlycDownGraph$Term))
 SlycDownGraph$Fisher <- as.numeric(SlycDownGraph$Fisher)
 
 require(ggplot2)
-SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher))) +
+SlycDownPlot <- ggplot(SlycDownGraph, aes(x=Term, y=-log10(Fisher), fill=SlycDownGraph$Significant)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
+  scale_fill_gradientn(colours = pal) +
   ggtitle("Tomato Genes Up at Stage 3") +
   scale_y_continuous(breaks = round(seq(0, max(-log10(SlycDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
 
 
@@ -272,8 +279,8 @@ ConservedUpFisherWeightResults <- runTest(ConservedUpGOData, algorithm="weight01
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-ConservedUpGraph <- GenTable(ConservedUpGOData,Fisher=ConservedUpFisherWeightResults, orderBy=Fisher, topNodes=20)
-ConservedUpGraph <- ConservedUpGraph[as.numeric(ConservedUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+ConservedUpGraph <- GenTable(ConservedUpGOData,Fisher=ConservedUpFisherWeightResults, orderBy=Fisher, topNodes=10)
+ConservedUpGraph <- ConservedUpGraph[as.numeric(ConservedUpGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 ConservedUpGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", ConservedUpGraph$Term) #clean elipses
 ConservedUpGraph$Term <- gsub("\\.\\.\\.$", "", ConservedUpGraph$Term)
 ConservedUpGraph$Term <- paste(ConservedUpGraph$GO.ID, ConservedUpGraph$Term, sep=", ")
@@ -281,26 +288,28 @@ ConservedUpGraph$Term <- factor(ConservedUpGraph$Term, levels=rev(ConservedUpGra
 ConservedUpGraph$Fisher <- as.numeric(ConservedUpGraph$Fisher)
 
 require(ggplot2)
-ConservedUpPlot <- ggplot(ConservedUpGraph, aes(x=Term, y=-log10(Fisher))) +
+ConservedUpPlot <- ggplot(ConservedUpGraph, aes(x=Term, y=-log10(Fisher), fill=ConservedUpGraph$Significant)) +
   stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
-  ggtitle("Conserved Genes Down at Stage 3") +
+  ggtitle("Conserved Genes Up at Stage 1") +
+  scale_fill_gradientn(colours = pal) +
   scale_y_continuous(breaks = round(seq(0, max(-log10(ConservedUpGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
 
 
@@ -321,8 +330,8 @@ ConservedDownFisherWeightResults <- runTest(ConservedDownGOData, algorithm="weig
 
 #Make graph for plotting GO Terms
 # from https://www.biostars.org/p/350710/
-ConservedDownGraph <- GenTable(ConservedDownGOData,Fisher=ConservedDownFisherWeightResults, orderBy=Fisher, topNodes=20)
-ConservedDownGraph <- ConservedDownGraph[as.numeric(ConservedDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher")]
+ConservedDownGraph <- GenTable(ConservedDownGOData,Fisher=ConservedDownFisherWeightResults, orderBy=Fisher, topNodes=10)
+ConservedDownGraph <- ConservedDownGraph[as.numeric(ConservedDownGraph$Fisher)<0.05,c("GO.ID", "Term", "Fisher", "Significant")]
 ConservedDownGraph$Term <- gsub(" [a-z]*\\.\\.\\.$", "", ConservedDownGraph$Term) #clean elipses
 ConservedDownGraph$Term <- gsub("\\.\\.\\.$", "", ConservedDownGraph$Term)
 ConservedDownGraph$Term <- paste(ConservedDownGraph$GO.ID, ConservedDownGraph$Term, sep=", ")
@@ -330,52 +339,56 @@ ConservedDownGraph$Term <- factor(ConservedDownGraph$Term, levels=rev(ConservedD
 ConservedDownGraph$Fisher <- as.numeric(ConservedDownGraph$Fisher)
 
 require(ggplot2)
-ConservedDownPlot <- ggplot(ConservedDownGraph, aes(x=Term, y=-log10(Fisher))) +
-  stat_summary(geom = "bar", fun.y = mean, position = "dodge") +
+ConservedDownPlot <- ggplot(ConservedDownGraph, aes(x=Term, y=-log10(Fisher), fill=ConservedDownGraph$Significant)) +
+  stat_summary(geom = "bar", fun.y = mean) +
   xlab("Biological Process") +
   ylab("Log Fold Enrichment") +
   ggtitle("Conserved Genes Up at Stage 3") +
+  scale_fill_gradientn(colours = pal) +
   scale_y_continuous(breaks = round(seq(0, max(-log10(ConservedDownGraph$Fisher)), by = 2), 1)) +
   theme_bw(base_size=24) +
   theme(
     panel.grid = element_blank(),
-    legend.position='none',
-    legend.background=element_rect(),
+    legend.position=c(0.9,0.2),
+    legend.background=element_blank(),
+    legend.key=element_blank(),     #removes the border
+    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
+    legend.text=element_text(size=18),  #Text size
+    legend.title=element_blank(),
     plot.title=element_text(angle=0, size=24, face="bold", vjust=1),
     axis.text.x=element_text(angle=0, size=18, face="bold", hjust=1.10),
     axis.text.y=element_text(angle=0, size=18, face="bold", vjust=0.5),
     axis.title=element_text(size=24, face="bold"),
-    legend.key=element_blank(),     #removes the border
-    legend.key.size=unit(1, "cm"),      #Sets overall area/size of the legend
-    legend.text=element_text(size=18),  #Text size
     title=element_text(size=18)) +
-  guides(colour=guide_legend(override.aes=list(size=2.5))) +
+  guides(fill=guide_colorbar(ticks=FALSE, label.position = 'left')) +
   coord_flip()
 
 
 # Save Plots --------------------------------------------------------------
 #Save Outputs
-pdf(file="NobtUp.pdf", height=10, width=17)
+dev.off()
+dev.off()
+pdf(file="NobtUp.pdf", height=8, width=14)
   NobtDownPlot
 dev.off()
 
-pdf(file="NobtDown.pdf", height=10, width=17)
+pdf(file="NobtDown.pdf", height=8, width=14)
   NobtUpPlot
 dev.off()
 
-pdf(file="SlycUp.pdf", height=10, width=17)
+pdf(file="SlycUp.pdf", height=8, width=14)
   SlycDownPlot
 dev.off()
 
-pdf(file="SlycDown.pdf", height=10, width=17)
+pdf(file="SlycDown.pdf", height=8, width=14)
   SlycUpPlot
 dev.off()
 
-pdf(file="ConservedUp.pdf", height=10, width=17)
+pdf(file="ConservedUp.pdf", height=8, width=14)
   ConservedDownPlot
 dev.off()
 
-pdf(file="ConservedDown.pdf", height=10, width=17)
+pdf(file="ConservedDown.pdf", height=8, width=14)
   ConservedUpPlot
 dev.off()
 
